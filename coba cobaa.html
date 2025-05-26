@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kartu Ucapan Anniv</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #f9e8e8, #e0f2f7);
+      min-height: 100vh;
+      font-family: 'Georgia', serif;
+      overflow: hidden;
+    }
+    .locket-container {
+      position: relative;
+      width: 320px;
+      height: 180px;
+      margin: 2rem auto 1rem;
+    }
+    .locket-left, .locket-right {
+      width: 160px;
+      height: 160px;
+      background: #ffe6e6;
+      position: absolute;
+      top: 0;
+      border: 3px solid #d4a017;
+      overflow: hidden;
+      transition: transform 0.5s ease;
+    }
+    .locket-left {
+      left: 0;
+      border-radius: 50% 0 0 50%;
+      transform-origin: right center;
+    }
+    .locket-right {
+      right: 0;
+      border-radius: 0 50% 50% 0;
+      transform-origin: left center;
+    }
+    .locket-left img, .locket-right img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: inherit;
+    }
+    .chain {
+      position: absolute;
+      top: -90px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 280px;
+      height: 180px;
+      border: 3px solid #d4a017;
+      border-bottom: none;
+      border-radius: 50% 50% 0 0;
+      animation: sway 4s ease-in-out infinite;
+    }
+    @keyframes sway {
+      0% { transform: translateX(-50%) rotate(-3deg); }
+      50% { transform: translateX(-50%) rotate(3deg); }
+      100% { transform: translateX(-50%) rotate(-3deg); }
+    }
+    .message {
+      color: #4a2c2a;
+      font-size: 1.3rem;
+      line-height: 1.6;
+      max-width: 80%;
+      margin: 1rem auto;
+      text-align: center;
+    }
+    .signature {
+      color: #6b4e4e;
+      font-size: 1rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center">
+
+  <audio id="background-music" loop autoplay>
+    <source src="https://vgmsite.com/soundtracks/wave-to-earth-love-fan-upload/love.mp3" type="audio/mpeg">
+    Browser kamu tidak mendukung elemen audio.
+  </audio>
+
+  <div id="form-section" class="p-6 w-full max-w-lg bg-white bg-opacity-80 rounded-xl shadow-xl backdrop-blur">
+    <h1 class="text-2xl font-bold text-center text-gray-800 mb-4">Buat Kartu Ucapan Anniv</h1>
+    <form id="input-form" onsubmit="generateGreeting(event)">
+      <label class="block mb-3">
+        <span class="text-gray-700 font-medium">Foto Kiri</span>
+        <input type="file" id="photo1" accept="image/*" required class="w-full mt-1 p-2 border rounded-md">
+      </label>
+      <label class="block mb-3">
+        <span class="text-gray-700 font-medium">Foto Kanan</span>
+        <input type="file" id="photo2" accept="image/*" required class="w-full mt-1 p-2 border rounded-md">
+      </label>
+      <label class="block mb-3">
+        <span class="text-gray-700 font-medium">Pesan</span>
+        <textarea id="message" rows="4" required class="w-full mt-1 p-2 border rounded-md" placeholder="Tulis pesan romantis..."></textarea>
+      </label>
+      <label class="block mb-4">
+        <span class="text-gray-700 font-medium">Nama / Tanda Tangan</span>
+        <input type="text" id="signature" required class="w-full mt-1 p-2 border rounded-md" placeholder="Contoh: Dari Aku">
+      </label>
+      <button type="submit" class="w-full bg-rose-500 text-white py-2 rounded-md hover:bg-rose-600 transition">Buat Ucapan</button>
+    </form>
+  </div>
+
+  <div id="greeting-card" class="hidden text-center px-4">
+    <div class="locket-container">
+      <div class="chain"></div>
+      <div class="locket-left">
+        <img id="photo1-preview" src="">
+      </div>
+      <div class="locket-right">
+        <img id="photo2-preview" src="">
+      </div>
+    </div>
+    <p class="message" id="greeting-message"></p>
+    <p class="signature">Dari: <span id="signature-text"></span></p>
+    <div id="share-section" class="mt-4 text-center"></div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const message = params.get('message');
+    const signature = params.get('signature');
+    const photo1 = params.get('photo1');
+    const photo2 = params.get('photo2');
+
+    if (message && signature && photo1 && photo2) {
+      document.getElementById('form-section').style.display = 'none';
+      document.getElementById('greeting-card').classList.remove('hidden');
+      document.getElementById('greeting-message').textContent = decodeURIComponent(message);
+      document.getElementById('signature-text').textContent = decodeURIComponent(signature);
+      document.getElementById('photo1-preview').src = decodeURIComponent(photo1);
+      document.getElementById('photo2-preview').src = decodeURIComponent(photo2);
+      document.getElementById('background-music').play().catch(() => {
+        document.addEventListener('click', () => document.getElementById('background-music').play(), { once: true });
+      });
+    }
+
+    function generateGreeting(e) {
+      e.preventDefault();
+      const photo1File = document.getElementById('photo1').files[0];
+      const photo2File = document.getElementById('photo2').files[0];
+      const message = document.getElementById('message').value;
+      const signature = document.getElementById('signature').value;
+      const reader1 = new FileReader();
+      const reader2 = new FileReader();
+
+      reader1.onload = () => {
+        const base64Photo1 = reader1.result;
+        reader2.onload = () => {
+          const base64Photo2 = reader2.result;
+          const finalUrl = `${window.location.origin}${window.location.pathname}?message=${encodeURIComponent(message)}&signature=${encodeURIComponent(signature)}&photo1=${encodeURIComponent(base64Photo1)}&photo2=${encodeURIComponent(base64Photo2)}`;
+          window.location.href = finalUrl;
+        };
+        reader2.readAsDataURL(photo2File);
+      };
+      reader1.readAsDataURL(photo1File);
+    }
+  </script>
+</body>
+</html>
